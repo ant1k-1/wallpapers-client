@@ -5,7 +5,7 @@ const CatalogPage = () => {
         <div>
             <h1>Каталог постов</h1>
             {posts.map(post => (
-                <Post key={post.id} title={post.title} description={post.description} />
+                <Post id={post.id} title={post.title} description={post.description} />
             ))}
         </div>
     )

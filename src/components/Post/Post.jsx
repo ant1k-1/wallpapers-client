@@ -1,8 +1,8 @@
 import './Post.css'
 import { Link } from "react-router-dom";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Post = ({ id, title, description }) => {
-    console.log(id);
     return (
         <div className="post">
             <Link to={`/post/${id}`}>

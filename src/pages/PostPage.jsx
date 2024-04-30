@@ -12,6 +12,6 @@ export const PostPage = () => {
     }
 
     return (
-        <Post id={post.id} title={post.title} description={post.description}/>
+        <Post id={id} title={post.title} description={post.description}/>
     );
 }
