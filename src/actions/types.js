@@ -1,0 +1,2 @@
+export const TOGGLE_AGREEMENT = "TOGGLE_AGREEMENT";
+export const SET_USER = "SET_USER";

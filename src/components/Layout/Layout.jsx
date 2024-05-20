@@ -4,6 +4,7 @@ import { Footer } from "../Footer/Footer";
 import { Navibar } from "../Navibar/Navibar";
 import { Container } from "react-bootstrap";
 import UserAgreement from "../UserAgreement/UserAgreement";
+import { useSelector, useDispatch } from 'react-redux';
 
 const Layout = () => {
     return (
@@ -12,11 +13,10 @@ const Layout = () => {
                 <Navibar/>
             </header>
             <main>
-                <UserAgreement />
+                {/* <UserAgreement /> */}
                 <Container>
                     <Outlet />
                 </Container>
-                
             </main>
 
             <footer>

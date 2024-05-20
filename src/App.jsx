@@ -1,17 +1,21 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import './App.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout/Layout'
-import { CatalogPage } from './pages/CatalogPage'
 import { HomePage } from './pages/HomePage'
 import { SigninPage } from './pages/SigninPage'
 import { PostPage } from './pages/PostPage'
 import { TermsPage } from './pages/TermsPage'
 import { SignupPage } from './pages/SignupPage';
 import { UploadPage } from './pages/UploadPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { ModerPage } from './pages/ModerationPage';
+import { AdminPage } from './pages/AdminPage';
 
 export const ScrollToTop = () => {
   // Extracts pathname property(key) from an object
@@ -24,12 +28,6 @@ export const ScrollToTop = () => {
 }
 
 function App() {
-  const agreementAccepted = useSelector(state => state.agreementReducer?.agreementAccepted);
-
-  if (agreementAccepted === undefined) {
-    // Вернуть заглушку или что-то другое, пока состояние не будет инициализировано
-    return <div>Loading...</div>;
-  }
   return (
     <>
       <Routes>
@@ -37,10 +35,15 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path='/signin' element={<SigninPage />} />
           <Route path='/signup' element={<SignupPage />} />
-          <Route path='/catalog' element={<CatalogPage />} />
           <Route path='/terms' element={<TermsPage />} />
           <Route path='/upload' element={<UploadPage />} />
-          <Route path='/post/:id' element={<PostPage />} />
+          <Route path='/moder' element={<ModerPage />} />
+          <Route path='/admin' element={<AdminPage />} />
+          <Route path='/profile' element={<ProfilePage />} />
+          <Route path='/profile/:userId' element={<ProfilePage />} />
+          <Route path='/post/:post_id' element={<PostPage />} />
+          <Route path='error404' element={<NotFoundPage />} />
+          <Route path='*' element={<NotFoundPage />} />
         </Route>
       </Routes>
       <ScrollToTop />

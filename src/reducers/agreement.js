@@ -1,6 +1,6 @@
 const initialState = {
-    agreementAccepted: false,
-}
+  agreementAccepted: false
+};
 
 const agreementReducer = (state = initialState, action) => {
     switch (action.type) {

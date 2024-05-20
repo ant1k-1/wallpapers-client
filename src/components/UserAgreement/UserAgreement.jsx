@@ -3,29 +3,24 @@ import Modal from 'react-bootstrap/Modal';
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleAgreement } from '../../actions/toggleAgreement'
+import { useState } from 'react'
 
 function UserAgreement() {
-    const [show, setShow] = useState(false);
+    const [show, setShow] = useState(true);
 
     const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
 
-
-    const agreementAccepted = useSelector(state => state.agreementReducer.agreementAccepted);
+    const agreementAccepted = useSelector(state => state.agreement.agreementAccepted);
     const dispatch = useDispatch();
 
-    const handleCloseModal = () => {
+    const handleCheckboxChange = () => {
         dispatch(toggleAgreement());
-      };
-    
-      const handleCheckboxChange = () => {
-        dispatch(toggleAgreement());
-      };
+    };
 
     return (
         <>
             <Modal
-                show={show && !agreementAccepted}
+                show={show || !agreementAccepted}
                 onHide={handleClose}
                 backdrop="static"
                 keyboard={false}
@@ -38,14 +33,14 @@ function UserAgreement() {
                     <label>
                         <input
                             type="checkbox"
-                            checked={agreementAccepted}
                             onChange={handleCheckboxChange}
+                            required={true}
                         />
                         I agree to the terms and conditions
                     </label>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="primary" onClick={handleCloseModal} disabled={!agreementAccepted}>
+                    <Button variant="primary" onClick={handleClose} disabled={!agreementAccepted}>
                         Accept
                     </Button>
                 </Modal.Footer>

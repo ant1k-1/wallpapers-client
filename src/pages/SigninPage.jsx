@@ -1,14 +1,15 @@
+import React from "react"
+import SigninForm from "../components/Forms/SigninForm";
+
 const SigninPage = () => {
     return (
         <>
-        <div>
-        <h1>Вход</h1>
-            <p>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempore saepe recusandae animi non enim vel vero, iusto amet tempora, harum earum omnis dolores laudantium magnam, consectetur id assumenda veniam pariatur.
-            </p>
-        </div>
+            <div>
+                <h1>Sign in</h1>
+                <SigninForm />
+            </div>
         </>
     )
 }
 
-export {SigninPage}
+export { SigninPage }
