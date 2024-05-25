@@ -37,7 +37,11 @@ const isExpired = (userInfo) => {
 const getRequest = async (url, config, setLoading = null, setError = null) => {
     if (setLoading) { setLoading(true) }
     try {
-        const response = await axios.get(url, config);
+        // const response = await axios.get(url, config);
+        const response = await axios(url, {
+            method: 'GET',
+            ...config,
+        })
         return response;
     } catch (err) {
         console.log(err);
@@ -53,7 +57,12 @@ const postRequest = async (url, payload, config, setLoading = null, setError = n
     if (setLoading) { setLoading(true) }
     try {
         console.log(config);
-        const response = await axios.post(url, payload, config);
+        // const response = await axios.post(url, payload, config);
+        const response = await axios(url, {
+            method: 'POST',
+            data: payload,
+            ...config,
+        })
         console.log(response);
         return response;
     } catch (err) {
