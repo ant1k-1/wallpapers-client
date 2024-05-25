@@ -84,7 +84,7 @@ const PostPage = (props) => {
 
     const handleReject = async () => {
         try {
-            await axios.delete(`http://localhost:8080/api/posts/id/${post.postId}/delete`, {
+            await axios.post(`http://localhost:8080/api/posts/id/${post.postId}/delete`, {
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": "Bearer " + accessToken

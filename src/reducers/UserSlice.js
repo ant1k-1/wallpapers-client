@@ -1,12 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const AUTH_API_URL = 'https://auth-jwt-service.onrender.com'
+
 const config = {
     headers: {
         "Content-Type": "application/json"
         // "access-control-allow-origin": "*",
     },
-    withCredentials: true
+    withCredentials: true,
 }
 
 export const parseJwt = (token) => {
@@ -22,7 +24,7 @@ export const parseJwt = (token) => {
 export const loginUser = createAsyncThunk(
     'user/loginUser',
     async(userCreds) => {
-        const req = await axios.post(`http://localhost:8081/api/auth/login`, JSON.stringify(userCreds), config);
+        const req = await axios.post(`${AUTH_API_URL}/api/auth/login`, JSON.stringify(userCreds), config);
         const res = await req.data;
         return res;
     }
@@ -31,11 +33,12 @@ export const loginUser = createAsyncThunk(
 export const signupUser = createAsyncThunk(
     'user/signupUser',
     async(userCreds) => {
-        const req = await axios.post(`http://localhost:8081/api/auth/signup`, JSON.stringify(userCreds), config);
+        const req = await axios.post(`${AUTH_API_URL}/api/auth/signup`, JSON.stringify(userCreds), config);
         const res = await req.data;
         return res;
     }
 );
+
 
 const userSlice = createSlice({
     name: 'user',
