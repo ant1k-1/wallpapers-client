@@ -2,11 +2,12 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const AUTH_API_URL = 'https://auth-jwt-service.onrender.com'
+// const AUTH_API_URL = 'http://localhost:8081'
+axios.defaults.withCredentials = true;
 
 const config = {
     headers: {
         "Content-Type": "application/json"
-        // "access-control-allow-origin": "*",
     },
     withCredentials: true,
 }

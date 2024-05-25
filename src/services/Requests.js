@@ -2,8 +2,8 @@ import { useDispatch, useSelector } from "react-redux"
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL;
-// const AUTH_API_URL = 'http://localhost:8081'
+// const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL;
+const AUTH_API_URL = 'http://localhost:8081'
 
 function parseJwt(token) {
     var base64Url = token.split('.')[1];
@@ -56,8 +56,8 @@ const postRequest = async (url, payload, config, setLoading = null, setError = n
     console.log("postRequest");
     if (setLoading) { setLoading(true) }
     try {
-        console.log(config);
         // const response = await axios.post(url, payload, config);
+        console.log(config);
         const response = await axios(url, {
             method: 'POST',
             data: payload,
