@@ -3,9 +3,11 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { updateToken } from "../reducers/UserSlice";
 import { useState } from "react";
+import { setCookie, getCookie, eraseCookie } from "./Cookies";
 
 const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL;
 const APP_API_URL = import.meta.env.VITE_APP_API_URL;
+const HTTPONLY_COOKIE = Number(import.meta.env.VITE_HTTPONLY_COOKIE);
 
 function parseJwt(token) {
     var base64Url = token.split('.')[1];
@@ -77,11 +79,14 @@ const updateAccessToken = async (dispatch) => {
     try {
         // console.log("updateToken");
         const response = await postRequest(`${AUTH_API_URL}/api/auth/token`, {}, { withCredentials: true });
+        if (HTTPONLY_COOKIE === 0) setCookie("refresh", response.data.refreshToken, 7);
         // console.log(response);
+        // document.cookie = ""
         const newAccessToken = response.data.accessToken;
         const newUserInfo = parseJwt(newAccessToken);
         // Обновляем состояние в Redux
-        dispatch(updateToken({ info: newUserInfo, jwt: newAccessToken }));
+        if (HTTPONLY_COOKIE === 0) dispatch(updateToken({ info: newUserInfo, jwt: newAccessToken}));
+        else dispatch(updateToken({ info: newUserInfo, jwt: newAccessToken} ));
         // Обновляем localStorage
         localStorage.setItem('user', JSON.stringify({ info: newUserInfo, jwt: newAccessToken }));
         return newAccessToken;
@@ -90,6 +95,7 @@ const updateAccessToken = async (dispatch) => {
         return null;
     }
 }
+
 
 /**
  * 

@@ -1,7 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { setCookie, getCookie, eraseCookie } from "../services/Cookies";
 
 const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL;
+const HTTPONLY_COOKIE = Number(import.meta.env.VITE_HTTPONLY_COOKIE);
 
 const config = {
     headers: {
@@ -13,7 +15,7 @@ const config = {
 export const parseJwt = (token) => {
     var base64Url = token.split('.')[1];
     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
 
@@ -22,7 +24,7 @@ export const parseJwt = (token) => {
 
 export const loginUser = createAsyncThunk(
     'user/loginUser',
-    async(userCreds) => {
+    async (userCreds) => {
         const req = await axios.post(`${AUTH_API_URL}/api/auth/login`, JSON.stringify(userCreds), config);
         const res = await req.data;
         return res;
@@ -31,12 +33,17 @@ export const loginUser = createAsyncThunk(
 
 export const signupUser = createAsyncThunk(
     'user/signupUser',
-    async(userCreds) => {
+    async (userCreds) => {
         const req = await axios.post(`${AUTH_API_URL}/api/auth/signup`, JSON.stringify(userCreds), config);
         const res = await req.data;
         return res;
     }
 );
+
+const logout = async () => {
+    await axios.post(`${AUTH_API_URL}/api/auth/logout`, {}, config);
+    if (HTTPONLY_COOKIE === 0) eraseCookie("refresh");
+}
 
 
 const userSlice = createSlice({
@@ -44,13 +51,15 @@ const userSlice = createSlice({
     initialState: {
         loading: false,
         user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null,
-        error: null
+        error: null,
     },
     reducers: {
         logoutUser: (state) => {
             state.user = null;
             localStorage.removeItem('user');
-            axios.post(`${AUTH_API_URL}/api/auth/logout`, {}, config);
+            logout();
+            // axios.post(`${AUTH_API_URL}/api/auth/logout`, {}, config);
+            // if (HTTPONLY_COOKIE === 0) eraseCookie("refresh");
         },
         clearError: (state) => {
             state.error = null;
@@ -60,7 +69,7 @@ const userSlice = createSlice({
                 state.user = {
                     ...state.user,
                     info: action.payload.info,
-                    jwt: action.payload.jwt
+                    jwt: action.payload.jwt,
                 };
                 localStorage.setItem('user', JSON.stringify(state.user));
             }
@@ -76,12 +85,13 @@ const userSlice = createSlice({
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.loading = false;
                 let userData = {
-                    info: parseJwt(action.payload.accessToken), 
-                    jwt: action.payload.accessToken
+                    info: parseJwt(action.payload.accessToken),
+                    jwt: action.payload.accessToken,
                 };
                 localStorage.setItem('user', JSON.stringify(userData));
                 state.user = userData;
                 state.error = null;
+                if (HTTPONLY_COOKIE === 0) { setCookie("refresh", action.payload.refreshToken, 7) }
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
@@ -100,12 +110,13 @@ const userSlice = createSlice({
             .addCase(signupUser.fulfilled, (state, action) => {
                 state.loading = false;
                 let userData = {
-                    info: parseJwt(action.payload.accessToken), 
+                    info: parseJwt(action.payload.accessToken),
                     jwt: action.payload.accessToken
                 };
                 localStorage.setItem('user', JSON.stringify(userData));
                 state.user = userData;
                 state.error = null;
+                if (HTTPONLY_COOKIE === 0) { setCookie("refresh", action.payload.refreshToken, 7) }
             })
             .addCase(signupUser.rejected, (state, action) => {
                 state.loading = false;
