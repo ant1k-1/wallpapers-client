@@ -1,3 +1,4 @@
+
 export function setCookie(name,value,days) {
     var expires = "";
     if (days) {
@@ -5,7 +6,7 @@ export function setCookie(name,value,days) {
         date.setTime(date.getTime() + (days*24*60*60*1000));
         expires = "; expires=" + date.toUTCString();
     }
-    document.cookie = name + "=" + (encodeURIComponent(value) || "")  + expires + "; path=/";
+    document.cookie = name + "=" + (encodeURIComponent(value) || "")  + expires + "; path=/; Secure";
 }
 export function getCookie(name) {
     var nameEQ = name + "=";
@@ -18,6 +19,6 @@ export function getCookie(name) {
     return null;
 }
 export function eraseCookie(name) {   
-    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure';
 }
 
