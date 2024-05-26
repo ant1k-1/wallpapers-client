@@ -8,7 +8,7 @@ const cache = {};
 const ImageWithAuth = ({ url }) => {
     const [fetchedImage, setFetchedImage] = useState();
     const imgRef = useRef(null);
-    const fetchData = useRequest();
+    const [fetchDataApi, fetchDataAuth] = useRequest();
     const config = {
         responseType: 'arraybuffer',
         headers: {},
@@ -22,7 +22,7 @@ const ImageWithAuth = ({ url }) => {
                     setFetchedImage(cache[url]);
                     // console.log("cache img");
                 } else {
-                    const res = await fetchData("GET", url, null, config);
+                    const res = await fetchDataApi("GET", url, null, config);
                     const blob = new Blob([res.data], { type: 'image/webp' });
                     const objectURL = URL.createObjectURL(blob);
                     cache[url] = objectURL;

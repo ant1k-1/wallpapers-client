@@ -1,9 +1,11 @@
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { updateToken } from "../reducers/UserSlice";
+import { useState } from "react";
 
 const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL;
-// const AUTH_API_URL = 'http://localhost:8081'
+const APP_API_URL = import.meta.env.VITE_APP_API_URL;
 
 function parseJwt(token) {
     var base64Url = token.split('.')[1];
@@ -15,12 +17,12 @@ function parseJwt(token) {
     return JSON.parse(jsonPayload);
 }
 
-const setAuthorizationHeader = (config, token) => {
+const setAuthorizationHeader = (config, token, isAuth=null) => {
     // Клонируем объект конфигурации
     const updatedConfig = {
         ...config,
         headers: {
-            ...config.headers,
+            ...config?.headers,
             Authorization: "Bearer " + token,
         },
     };
@@ -28,9 +30,6 @@ const setAuthorizationHeader = (config, token) => {
 };
 
 const isExpired = (userInfo) => {
-    if (!userInfo || !userInfo.exp) {
-        return true;
-    }
     return (Date.now() >= userInfo.exp * 1000);
 }
 
@@ -53,20 +52,20 @@ const getRequest = async (url, config, setLoading = null, setError = null) => {
 }
 
 const postRequest = async (url, payload, config, setLoading = null, setError = null) => {
-    console.log("postRequest");
+    // console.log("postRequest");
     if (setLoading) { setLoading(true) }
     try {
         // const response = await axios.post(url, payload, config);
-        console.log(config);
+        // console.log(config);
         const response = await axios(url, {
             method: 'POST',
             data: payload,
             ...config,
         })
-        console.log(response);
-        return response;
+        // console.log(response);
+        return await response;
     } catch (err) {
-        console.log(err);
+        // console.log(err);
         if (setError) { setError(err.response ? err.response.data : 'Error fetching posts') }
         return null;
     } finally {
@@ -74,20 +73,21 @@ const postRequest = async (url, payload, config, setLoading = null, setError = n
     }
 }
 
-const updateToken = async (dispatch) => {
+const updateAccessToken = async (dispatch) => {
     try {
-        console.log("updateToken");
+        // console.log("updateToken");
         const response = await postRequest(`${AUTH_API_URL}/api/auth/token`, {}, { withCredentials: true });
-        console.log(response);
+        // console.log(response);
         const newAccessToken = response.data.accessToken;
         const newUserInfo = parseJwt(newAccessToken);
         // Обновляем состояние в Redux
         dispatch(updateToken({ info: newUserInfo, jwt: newAccessToken }));
         // Обновляем localStorage
         localStorage.setItem('user', JSON.stringify({ info: newUserInfo, jwt: newAccessToken }));
-        return true;
+        return newAccessToken;
     } catch (error) {
-        return false;
+        console.log(error);
+        return null;
     }
 }
 
@@ -106,27 +106,45 @@ const useRequest = () => {
     const { user } = useSelector((state) => state.user);
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const { info: userInfo, jwt: accessToken } = user ? user : storedUser ? storedUser : { info: null, jwt: null };
+    
+    const fetchDataApi = async (type, url, payload, config, setLoading = null, setError = null) => {
+        return await fetchData(type, url, payload, config, setLoading, setError, APP_API_URL);
+    }
+    const fetchDataAuth = async (type, url, payload, config, setLoading = null, setError = null) => {
+        const newConfig = { ...config, withCredentials: true }
+        return await fetchData(type, url, payload, newConfig, setLoading, setError, AUTH_API_URL);
+    }
 
-    const fetchData = async (type, url, payload, config, setLoading = null, setError = null) => {
+    const fetchData = async (type, url, payload, config, setLoading = null, setError = null, baseUrl = null) => {
+        let newConfig;
+        // console.log("Token is null: " + (accessToken ? false : true));
+        // console.log("Token is expired: " + isExpired(userInfo));
+        // console.log("current accessToken\n" + accessToken);
+        if (!userInfo) {
+            navigate("/signin");
+            return null;
+        }
         if (isExpired(userInfo)) {
-            let success = await updateToken(dispatch);
-            console.log(success);
-            if (!success) {
+            let newAccessToken = await updateAccessToken(dispatch);
+            // console.log("new accessToken\n" + accessToken);
+            if (newAccessToken === null) {
                 navigate("/signin")
                 return null;
             }
+            newConfig = setAuthorizationHeader(config, newAccessToken);
+        } else {
+            newConfig = setAuthorizationHeader(config, accessToken);
         }
-        let newConfig = setAuthorizationHeader(config, accessToken);
         switch (type) {
             case 'GET':
-                return getRequest(url, newConfig, setLoading, setError);
+                return await getRequest(baseUrl + url, newConfig, setLoading, setError);
             case 'POST':
-                return postRequest(url, payload, newConfig, setLoading, setError);
+                return await postRequest(baseUrl + url, payload, newConfig, setLoading, setError);
             default:
                 return null;
         }
     }
-    return fetchData;
+    return [fetchDataApi, fetchDataAuth];
 }
 
 export default useRequest;

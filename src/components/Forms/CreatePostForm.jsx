@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Container } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
+import useRequest from '../../services/Requests';
 
 const CreatePostForm = () => {
     const [image, setImage] = useState(null);
@@ -12,6 +13,7 @@ const CreatePostForm = () => {
     const { user } = useSelector((state) => state.user);
     const { info: userInfo, jwt: accessToken } = user ? user : JSON.parse(localStorage.getItem('user'));
     const [errorMessage, setErrorMessage] = useState('');
+    const [fetchDataApi, fetchDataAuth] = useRequest();
 
     const handleImageChange = (e) => {
         setImage(e.target.files[0]);
@@ -51,6 +53,12 @@ const CreatePostForm = () => {
         setTags(updatedTags);
     };
 
+    const config = {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        }
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
@@ -65,13 +73,7 @@ const CreatePostForm = () => {
         //     console.log(`${pair[0]}: ${pair[1]}`);
         // }
         try {
-
-            await axios.post('http://localhost:8080/api/posts/create', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    "Authorization": "Bearer " + accessToken
-                }
-            });
+            await fetchDataApi('POST', '/api/posts/create', formData, config);
             // Очистить форму после успешной отправки
             setSource(null);
             setImage(null);

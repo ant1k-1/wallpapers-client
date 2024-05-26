@@ -8,15 +8,15 @@ import Loading from '../components/Loading';
 import useRequest from '../services/Requests';
 
 // const WALLPAPERS_API_URL = 'https://wallpapers-api-pub3.onrender.com'
-const WALLPAPERS_API_URL = import.meta.env.VITE_APP_API_URL;
-// const WALLPAPERS_API_URL = 'http://localhost:8080'
+// const WALLPAPERS_API_URL = import.meta.env.VITE_APP_API_URL;
+const WALLPAPERS_API_URL = 'http://localhost:8080'
 
 const HomePage = () => {
     const { user } = useSelector((state) => state.user);
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const { info: userInfo, jwt: accessToken } = user ? user : storedUser ? storedUser : { info: null, jwt: null };
 
-    const fetchData = useRequest();
+    const [fetchDataApi, fetchDataAuth] = useRequest();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -50,7 +50,7 @@ const HomePage = () => {
     }
 
     const fecthPostsByTags = async () => {
-        const response = await fetchData('POST', `${WALLPAPERS_API_URL}/api/posts/all/tags`, { tagNames: searchTags }, config, setLoading, setError);
+        const response = await fetchDataApi('POST', '/api/posts/all/tags', { tagNames: searchTags }, config, setLoading, setError);
         if (response) {
             setPosts(response.data.content);
             setTotalPages(response.data.totalPages);
@@ -58,7 +58,7 @@ const HomePage = () => {
     };
 
     const fetchPosts = async () => {
-        const response = await fetchData('GET', `${WALLPAPERS_API_URL}/api/posts/all`, null, config, setLoading, setError);
+        const response = await fetchDataApi('GET', '/api/posts/all', null, config, setLoading, setError);
         if (response) {
             setPosts(response.data.content);
             setTotalPages(response.data.totalPages);

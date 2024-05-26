@@ -1,5 +1,4 @@
 import { Link, Outlet } from "react-router-dom";
-import { Button } from '../Button/Button';
 import { Footer } from "../Footer/Footer";
 import { Navibar } from "../Navibar/Navibar";
 import { Container } from "react-bootstrap";

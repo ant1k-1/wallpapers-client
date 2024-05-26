@@ -4,6 +4,7 @@ import { NotFoundPage } from "./NotFoundPage";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { PostPage } from "./PostPage";
+import useRequest from "../services/Requests";
 
 
 const ModerPage = () => {
@@ -15,37 +16,33 @@ const ModerPage = () => {
     const { info: userInfo, jwt: accessToken } = user ? user : storedUser ? storedUser : { info: null, jwt: null };
 
     const [next, setNext] = useState(false);
+    const [fetchDataApi, fetchDataAuth] = useRequest();
+
+    const config = {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
 
     useEffect(() => {
         const fetchPosts = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8080/api/posts/all/status`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + accessToken
-                    },
-                    params: {
-                        page: 0,
-                        size: 1,
-                        status: 'POST_MODERATION',
-                        sort: 'UPLOAD_DATE_DESC'
-                    },
-                });
-                setPosts(response.data.content);
-            } catch (err) {
-                console.log(err);
-                setError(err.response ? err.response.data : 'Error fetching data');
-            } finally {
-                setLoading(false);
-            }
+            const response = await fetchDataApi('GET', '/api/posts/all/status', null, {
+                ...config,
+                params: {
+                    page: 0,
+                    size: 1,
+                    status: 'POST_MODERATION',
+                    sort: 'UPLOAD_DATE_DESC'
+                },
+            }, setLoading, setError);
+            if (response) { setPosts(response.data.content); }
         };
-
         fetchPosts();
         setNext(false);
     }, [accessToken, next]);
 
     if (userInfo.roles.includes("ROLE_USER") && userInfo.roles.length < 2) {
-        return <NotFoundPage/>
+        return <NotFoundPage />
     }
 
     if (loading) {
@@ -66,4 +63,4 @@ const ModerPage = () => {
     );
 }
 
-export {ModerPage}
+export { ModerPage }

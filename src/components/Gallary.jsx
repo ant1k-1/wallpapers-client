@@ -18,7 +18,7 @@ const Gallary = (props) => {
                     {posts.map(post => (
                         <Col key={post.postId} xs={12} sm={6} md={4} lg={3} className="mb-4">
                             <Link to={`/post/${post.postId}`}>
-                                <ImageWithAuth url={`${WALLPAPERS_API_URL}/lowres/` + post.preview} />
+                                <ImageWithAuth url={'/lowres/' + post.preview} />
                             </Link>
                         </Col>
                     ))}

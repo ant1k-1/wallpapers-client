@@ -21,6 +21,13 @@ const AdminPage = () => {
     const { user } = useSelector((state) => state.user);
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const { info: userInfo, jwt: accessToken } = user ? user : storedUser ? storedUser : { info: null, jwt: null };
+    const [fetchDataApi, fetchDataAuth] = useRequest();
+
+    const config = {
+        headers: {
+            "Content-Type": "application/json",
+        }
+    }
 
     useEffect(() => {
         fetchPreviewQuality();
@@ -36,12 +43,7 @@ const AdminPage = () => {
 
     const fetchPreviewQuality = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/posts/admin/preview_quality', {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + accessToken
-                }
-            });
+            const response = await fetchDataApi('GET', '/api/posts/admin/preview_quality', null, config);
             setPreviewQuality(response.data);
         } catch (error) {
             console.error('Error fetching preview quality:', error);
@@ -50,12 +52,8 @@ const AdminPage = () => {
 
     const fetchUsers = async () => {
         try {
-            
-            const response = await axios.get('http://localhost:8080/api/users/all', {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + accessToken
-                },
+            const response = await fetchDataApi('GET', '/api/users/all', null, {
+                ...config,
                 params: {
                     page: currentPage,
                     size: 10,
@@ -75,19 +73,9 @@ const AdminPage = () => {
         try {
             let response;
             if (searchField === 'id') {
-                response = await axios.get(`http://localhost:8080/api/users/id/${searchQuery}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + accessToken
-                    }
-                });
+                response = await fetchDataApi('GET', `/api/users/id/${searchQuery}`, null, config);
             } else if (searchField === 'username') {
-                response = await axios.get(`http://localhost:8080/api/users/username/${searchQuery}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + accessToken
-                    }
-                });
+                response = await fetchDataApi('GET', `/api/users/username/${searchQuery}`, null, config);
             }
             setUsers(response.data ? [response.data] : []);
             setTotalPages(1);
@@ -102,12 +90,7 @@ const AdminPage = () => {
 
     const handleStatusChange = async (userId, status) => {
         try {
-            await axios.post(`http://localhost:8080/api/users/id/${userId}/status`, { status }, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + accessToken
-                }
-            });
+            await fetchDataApi('POST', `/api/users/id/${userId}/status`, { status }, config);
             fetchUsers(); // Refresh the user list
         } catch (error) {
             console.error('Error changing user status:', error);
@@ -118,12 +101,7 @@ const AdminPage = () => {
 
     const handleSetPreviewQuality = async () => {
         try {
-            await axios.post(`http://localhost:8080/api/posts/admin/preview_quality/${previewQuality}`, {}, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + accessToken
-                }
-            });
+            await fetchDataApi('POST', `/api/posts/admin/preview_quality/${previewQuality}`, {}, config);
             alert('Preview quality set successfully');
         } catch (error) {
             console.error('Error setting preview quality:', error);

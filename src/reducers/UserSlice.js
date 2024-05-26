@@ -1,9 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const AUTH_API_URL = 'https://auth-jwt-service.onrender.com'
-// const AUTH_API_URL = 'http://localhost:8081'
-axios.defaults.withCredentials = true;
+const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL;
 
 const config = {
     headers: {
@@ -52,12 +50,12 @@ const userSlice = createSlice({
         logoutUser: (state) => {
             state.user = null;
             localStorage.removeItem('user');
+            axios.post(`${AUTH_API_URL}/api/auth/logout`, {}, config);
         },
         clearError: (state) => {
             state.error = null;
         },
         updateToken: (state, action) => {
-            console.log("updateToken!!!");
             if (state.user) {
                 state.user = {
                     ...state.user,

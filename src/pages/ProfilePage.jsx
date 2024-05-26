@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Gallary from "../components/Gallary";
 import Loading from "../components/Loading";
+import useRequest from "../services/Requests";
 
 
 const ProfilePage = () => {
@@ -16,6 +17,8 @@ const ProfilePage = () => {
     const { info: userInfo, jwt: accessToken } = user ? user : JSON.parse(localStorage.getItem('user'));
     const currentUserId = userId ? userId : userInfo.user_id;
 
+    const [fetchDataApi, fetchDataAuth] = useRequest();
+
     const [uploads, setUploads] = useState([]);
     const [favourites, setFavourites] = useState([]);
 
@@ -24,23 +27,16 @@ const ProfilePage = () => {
     const [favouritesPage, setFavouritesPage] = useState(0);
     const [favouritesTotalPages, setFavouritesTotalPages] = useState(0);
 
+    const config = {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
+
     useEffect(() => {
         const fetchProfile = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8080/api/users/id/${currentUserId}`,
-                    {
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer " + accessToken
-                        },
-                        withCredentials: true,
-                    });
-                setProfile(response.data);
-            } catch (err) {
-                setError(err.response ? err.response.data : 'Error fetching profile');
-            } finally {
-                setLoading(false);
-            }
+            const response = await fetchDataApi('GET', `/api/users/id/${currentUserId}`, null, config, setLoading, setError);
+            if (response) { setProfile(response.data) }
         };
         if (currentUserId) {
             fetchProfile();
@@ -52,23 +48,13 @@ const ProfilePage = () => {
 
     useEffect(() => {
         const fetchUploads = async () => {
-            setLoading(true);
-            try {
-                const response = await axios.get(`http://localhost:8080/api/users/id/${currentUserId}/uploads`,
-                    {
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer " + accessToken
-                        },
-                        withCredentials: true,
-                        params: { page: uploadsPage, size: 3, sort: 'UPLOAD_DATE_DESC' }
-                    });
+            const response = await fetchDataApi('GET', `/api/users/id/${currentUserId}/uploads`, null, {
+                ...config,
+                params: { page: uploadsPage, size: 3, sort: 'UPLOAD_DATE_DESC' }
+            }, setLoading, setError);
+            if (response) {
                 setUploads(response.data.content);
                 setUploadsTotalPages(response.data.totalPages);
-            } catch (err) {
-                setError(err.response ? err.response.data : 'Error fetching uploads');
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -82,23 +68,13 @@ const ProfilePage = () => {
 
     useEffect(() => {
         const fetchFavourites = async () => {
-            setLoading(true);
-            try {
-                const response = await axios.get(`http://localhost:8080/api/users/id/${currentUserId}/favourites`,
-                    {
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer " + accessToken
-                        },
-                        withCredentials: true,
-                        params: { page: favouritesPage, size: 3, sort: 'ADDED_DATE_DESC' }
-                    });
+            const response = await fetchDataApi('GET', `/api/users/id/${currentUserId}/favourites`, null, {
+                ...config,
+                params: { page: favouritesPage, size: 3, sort: 'ADDED_DATE_DESC' }
+            });
+            if (response) {
                 setFavourites(response.data.content);
                 setFavouritesTotalPages(response.data.totalPages);
-            } catch (err) {
-                setError(err.response ? err.response.data : 'Error fetching favourites');
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -139,10 +115,10 @@ const ProfilePage = () => {
             )}
 
             <h2>Uploads</h2>
-            <Gallary posts={uploads} currentPage={uploadsPage} totalPages={uploadsTotalPages} accessToken={accessToken} handlePageChange={handleUploadsPageChange}/>
+            <Gallary posts={uploads} currentPage={uploadsPage} totalPages={uploadsTotalPages} handlePageChange={handleUploadsPageChange} />
 
             <h2>Favourites</h2>
-            <Gallary posts={favourites} currentPage={favouritesPage} totalPages={favouritesTotalPages} accessToken={accessToken} handlePageChange={handleFavouritesPageChange}/>
+            <Gallary posts={favourites} currentPage={favouritesPage} totalPages={favouritesTotalPages} handlePageChange={handleFavouritesPageChange} />
         </div>
     )
 }

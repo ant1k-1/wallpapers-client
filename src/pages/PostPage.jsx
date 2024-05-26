@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Container, Row, Col, Badge, Button } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import ImageWithAuth from '../components/ImageWithAuth';
+import useRequest from '../services/Requests';
 
 const PostPage = (props) => {
     const navigate = useNavigate();
@@ -12,27 +13,24 @@ const PostPage = (props) => {
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const [fetchDataApi, fetchDataAuth] = useRequest();
+
+    const config = {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
+
     const { user } = useSelector((state) => state.user);
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const { info: userInfo, jwt: accessToken } = user ? user : storedUser ? storedUser : { info: null, jwt: null };
     useEffect(() => {
         const fetchPost = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8080/api/posts/id/${postId}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + accessToken
-                    },
-                });
-                setPost(response.data);
-            } catch (err) {
-                navigate("/error404");
-                setError(err.response ? err.response.data : 'Error fetching data');
-            } finally {
-                setLoading(false);
-            }
+            const response = await fetchDataApi('GET', `/api/posts/id/${postId}`, null, config, setLoading, setError);
+            if (response) { setPost(response.data); }
+            else { navigate("/error404"); }
         };
-
         fetchPost();
     }, [postId]);
 
@@ -43,12 +41,7 @@ const PostPage = (props) => {
             const type = match ? match[1] : '';
             return type === 'jpg' ? 'jpeg' : 'png';
         }
-        const res = await axios.get(url, {
-            responseType: 'arraybuffer',
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
+        const res = await fetchDataApi('GET', url, null, { responseType: 'arraybuffer' });
         const blob = await new Blob([res.data], { type: `image/${getType(filename)}` });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -57,25 +50,13 @@ const PostPage = (props) => {
     }
 
     const handleAddToFavourites = async (post_id) => {
-        const res = await axios.post(`http://localhost:8080/api/posts/id/${post_id}/like`, {}, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
+        await fetchDataApi('POST', `/api/posts/id/${post_id}/like`, {}, {});
     }
 
     const handleAccept = async () => {
         try {
-            await axios.post(`http://localhost:8080/api/posts/id/${post.postId}/status`, {
-                status: "POST_PUBLISHED"
-            }, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + accessToken
-                }
-            });
+            await fetchDataApi('POST', `/api/posts/id/${post.postId}/status`, { status: "POST_PUBLISHED" }, config);
             props.setNext(true);
-            //navigate('/moder'); // Redirect to moderation page or fetch the next post
         } catch (error) {
             console.error('Error accepting post:', error);
             setError('Error accepting post');
@@ -84,14 +65,8 @@ const PostPage = (props) => {
 
     const handleReject = async () => {
         try {
-            await axios.post(`http://localhost:8080/api/posts/id/${post.postId}/delete`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + accessToken
-                }
-            });
+            await fetchDataApi('POST', `/api/posts/id/${post.postId}/delete`, {}, config);
             props.setNext(true);
-            //navigate('/moder'); // Redirect to moderation page or fetch the next post
         } catch (error) {
             console.error('Error rejecting post:', error);
             setError('Error rejecting post');
@@ -107,7 +82,9 @@ const PostPage = (props) => {
     }
 
     const validateSource = (source) => {
-        
+        if(source.startsWith("https://")) return source;
+        else if (source.startsWith("http://")) return source.replace("http://", "https://");
+        else return "https://" + source;
     }
 
     if (loading) {
@@ -126,11 +103,11 @@ const PostPage = (props) => {
             </Row>
             <Row>
                 <Col md={8}>
-                    <ImageWithAuth url={'http://localhost:8080/lowres/' + post.preview} token={accessToken} />
+                    <ImageWithAuth url={'/lowres/' + post.preview} token={accessToken} />
                 </Col>
                 <Col md={4}>
                     <h3>Details</h3>
-                    <p><a href={'https://' + post.source} target="_blank" rel="noopener noreferrer">Source</a></p>
+                    <p><a href={validateSource(post.source)} target="_blank" rel="noopener noreferrer">Source</a></p>
                     <p><strong>Dimensions:</strong> {post.dimensions}</p>
                     <p><strong>Size:</strong> {Math.round(post.size / 1024 / 1024 * 10) / 10} MB</p>
                     <p><strong>Status:</strong> {post.postStatus}</p>
@@ -150,7 +127,7 @@ const PostPage = (props) => {
             <Row className="mt-3">
                 <Col>
                     <Button variant="primary" onClick={() => handleAddToFavourites(post.postId)} disabled={post.postStatus === "POST_MODERATION" ? ("disabled") : ""}>Add to favourites</Button>
-                    <Button variant="info" className="ms-2" onClick={() => handleDownload('http://localhost:8080/highres/' + post.image, post.image)}>Download high-resolution</Button>
+                    <Button variant="info" className="ms-2" onClick={() => handleDownload('/highres/' + post.image, post.image)}>Download high-resolution</Button>
                     {(userInfo.roles.includes("ROLE_ADMIN") || userInfo.roles.includes("ROLE_MODER")) && <Button variant="danger" className="ms-2" onClick={handleReject}>Reject</Button>}
                     {(userInfo.roles.includes("ROLE_ADMIN") || userInfo.roles.includes("ROLE_MODER")) && <Button variant="success" className="ms-2" onClick={handleAccept}>Accept</Button>}
                 </Col>
