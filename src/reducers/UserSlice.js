@@ -42,7 +42,7 @@ export const signupUser = createAsyncThunk(
 
 const logout = async () => {
     let refresh = getCookie("refresh");
-    await axios.post(`${AUTH_API_URL}/api/auth/logout`, { refresh }, config);
+    await axios.post(`${AUTH_API_URL}/api/auth/logout`, { refreshToken: refresh }, config);
     if (HTTPONLY_COOKIE === 0) eraseCookie("refresh");
 }
 
