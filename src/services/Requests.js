@@ -77,11 +77,15 @@ const postRequest = async (url, payload, config, setLoading = null, setError = n
 
 const updateAccessToken = async (dispatch) => {
     try {
+        let response;
         // console.log("updateToken");
-        const response = await postRequest(`${AUTH_API_URL}/api/auth/token`, {}, { withCredentials: true });
-        if (HTTPONLY_COOKIE === 0) setCookie("refresh", response.data.refreshToken, 7);
-        // console.log(response);
-        // document.cookie = ""
+        if (HTTPONLY_COOKIE === 0) {
+            let refresh = getCookie("refresh");
+            response = await postRequest(`${AUTH_API_URL}/api/auth/token`, {refreshToken: refresh}, {});
+            setCookie("refresh", response.data.refreshToken, 7);
+        } else {
+            response = await postRequest(`${AUTH_API_URL}/api/auth/token`, {}, { withCredentials: true });
+        }
         const newAccessToken = response.data.accessToken;
         const newUserInfo = parseJwt(newAccessToken);
         // Обновляем состояние в Redux
