@@ -19,7 +19,7 @@ function parseJwt(token) {
     return JSON.parse(jsonPayload);
 }
 
-const setAuthorizationHeader = (config, token, isAuth=null) => {
+const setAuthorizationHeader = (config, token) => {
     // Клонируем объект конфигурации
     const updatedConfig = {
         ...config,

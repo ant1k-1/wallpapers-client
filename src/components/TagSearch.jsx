@@ -3,25 +3,20 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { Button } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
+import useRequest from '../services/Requests';
 
 const TagSearch = ({ accessToken: accessToken, handleSelectTags:handleSelectTags, handleSearch: handleSearch, handleReset: handleReset }) => {
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
-
+    const [fetchDataApi, fetchDataAuth] = useRequest();
     useEffect(() => {
         const trimmedSearchText = searchText.trim();
         if (!trimmedSearchText) {
             setSearchResults([]);
             return;
         }
-
-        axios.get(`http://localhost:8080/api/tags/${trimmedSearchText}`, {
-            headers: {
-                "Authorization": "Bearer " + accessToken
-            },
-            withCredentials: true,
-        })
+        fetchDataApi('GET', `/api/tags/${trimmedSearchText}`, null, {})
             .then(response => {
                 setSearchResults(response.data);
             })

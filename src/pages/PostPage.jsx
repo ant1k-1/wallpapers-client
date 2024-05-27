@@ -66,7 +66,7 @@ const PostPage = (props) => {
     const handleReject = async () => {
         try {
             await fetchDataApi('POST', `/api/posts/id/${post.postId}/delete`, {}, config);
-            props.setNext(true);
+            props?.setNext(true);
         } catch (error) {
             console.error('Error rejecting post:', error);
             setError('Error rejecting post');
@@ -128,7 +128,7 @@ const PostPage = (props) => {
                 <Col>
                     <Button variant="primary" onClick={() => handleAddToFavourites(post.postId)} disabled={post.postStatus === "POST_MODERATION" ? ("disabled") : ""}>Add to favourites</Button>
                     <Button variant="info" className="ms-2" onClick={() => handleDownload('/highres/' + post.image, post.image)}>Download high-resolution</Button>
-                    {(userInfo.roles.includes("ROLE_ADMIN") || userInfo.roles.includes("ROLE_MODER")) && <Button variant="danger" className="ms-2" onClick={handleReject}>Reject</Button>}
+                    {(userInfo.roles.includes("ROLE_ADMIN") || userInfo.roles.includes("ROLE_MODER")) && <Button variant="danger" className="ms-2" onClick={handleReject}>Delete</Button>}
                     {(userInfo.roles.includes("ROLE_ADMIN") || userInfo.roles.includes("ROLE_MODER")) && <Button variant="success" className="ms-2" onClick={handleAccept}>Accept</Button>}
                 </Col>
             </Row>
