@@ -22,23 +22,6 @@ export const parseJwt = (token) => {
     return JSON.parse(jsonPayload);
 }
 
-export const loginUser = createAsyncThunk(
-    'user/loginUser',
-    async (userCreds) => {
-        const req = await axios.post(`${AUTH_API_URL}/api/auth/login`, JSON.stringify(userCreds), config);
-        const res = await req.data;
-        return res;
-    }
-);
-
-export const signupUser = createAsyncThunk(
-    'user/signupUser',
-    async (userCreds) => {
-        const req = await axios.post(`${AUTH_API_URL}/api/auth/signup`, JSON.stringify(userCreds), config);
-        const res = await req.data;
-        return res;
-    }
-);
 
 const logout = async () => {
     let refresh = getCookie("refresh");
@@ -59,8 +42,6 @@ const userSlice = createSlice({
             state.user = null;
             localStorage.removeItem('user');
             logout();
-            // axios.post(`${AUTH_API_URL}/api/auth/logout`, {}, config);
-            // if (HTTPONLY_COOKIE === 0) eraseCookie("refresh");
         },
         clearError: (state) => {
             state.error = null;
@@ -74,62 +55,27 @@ const userSlice = createSlice({
                 };
                 localStorage.setItem('user', JSON.stringify(state.user));
             }
+        },
+        signupUser: (state, action) => {
+            let userData = {
+                info: parseJwt(action.payload.accessToken),
+                jwt: action.payload.accessToken
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            state.user = userData;
+            if (HTTPONLY_COOKIE === 0) { setCookie("refresh", action.payload.refreshToken, 7) }
+        },
+        signinUser: (state, action) => {
+            let userData = {
+                info: parseJwt(action.payload.accessToken),
+                jwt: action.payload.accessToken,
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            state.user = userData;
+            if (HTTPONLY_COOKIE === 0) { setCookie("refresh", action.payload.refreshToken, 7) }
         }
+
     },
-    extraReducers: (builder) => {
-        builder
-            .addCase(loginUser.pending, (state) => {
-                state.loading = true;
-                state.user = null;
-                state.error = null;
-            })
-            .addCase(loginUser.fulfilled, (state, action) => {
-                state.loading = false;
-                let userData = {
-                    info: parseJwt(action.payload.accessToken),
-                    jwt: action.payload.accessToken,
-                };
-                localStorage.setItem('user', JSON.stringify(userData));
-                state.user = userData;
-                state.error = null;
-                if (HTTPONLY_COOKIE === 0) { setCookie("refresh", action.payload.refreshToken, 7) }
-            })
-            .addCase(loginUser.rejected, (state, action) => {
-                state.loading = false;
-                state.user = null;
-                if (action.error.message === 'Request failed with status code 401') {
-                    state.error = 'Invalid Credentials';
-                }
-                else {
-                    state.error = action.error.message;
-                }
-            })
-            .addCase(signupUser.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(signupUser.fulfilled, (state, action) => {
-                state.loading = false;
-                let userData = {
-                    info: parseJwt(action.payload.accessToken),
-                    jwt: action.payload.accessToken
-                };
-                localStorage.setItem('user', JSON.stringify(userData));
-                state.user = userData;
-                state.error = null;
-                if (HTTPONLY_COOKIE === 0) { setCookie("refresh", action.payload.refreshToken, 7) }
-            })
-            .addCase(signupUser.rejected, (state, action) => {
-                state.loading = false;
-                if (action.error.code === "ERR_BAD_REQUEST") {
-                    state.error = 'Username' + ' "' + action.meta.arg['username'] + '" ' + 'already exists';
-                }
-                else {
-                    state.error = action.error.message;
-                }
-                state.user = null
-            })
-    }
 })
-export const { logoutUser, clearError, updateToken } = userSlice.actions;
+export const { logoutUser, clearError, updateToken, signupUser, signinUser } = userSlice.actions;
 export default userSlice.reducer;

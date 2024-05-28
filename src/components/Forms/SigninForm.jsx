@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
-import { clearError, loginUser } from "../../reducers/UserSlice";
+import { signinUser } from "../../reducers/UserSlice";
 import { useNavigate } from "react-router-dom";
+import useRequest from "../../services/Requests";
+import ErrorAlert from "../ErrorAlert";
 
 function getUser() {
     let user = localStorage.getItem('user');
@@ -18,30 +20,25 @@ const SigninForm = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    const [user, setUser] = useState(getUser());
-
-    const { loading, error } = useSelector((state) => state.user)
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [fetchDataApi, fetchDataAuth] = useRequest();
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        dispatch(clearError());
-    }, [dispatch]);
-
-    const handleLoginEvent = (e) => {
+    const handleLoginEvent = async (e) => {
         e.preventDefault();
         let userCreds = {
             username, password
         }
-        dispatch(loginUser(userCreds)).then((result) => {
-            if (result.payload) {
-                setUsername('');
-                setPassword('');
-                setUser(user);
-                navigate('/');
-            }
-        })
+        const response = await fetchDataAuth('POST', '/api/auth/login', userCreds, { headers: { "Content-Type": "application/json" } }, setLoading, setError);
+        if (response) {
+            dispatch(signinUser(response.data));
+            setUsername('');
+            setPassword('');
+            navigate('/');
+        }
     }
     return (
         <form className="form-group mx-auto" style={{ width: '20rem' }} onSubmit={handleLoginEvent}>
@@ -54,9 +51,7 @@ const SigninForm = () => {
             <button type="submit" className="btn btn-success btn-md mt-3" style={{ width: '6rem' }}>
                 {loading ? 'Loading...' : 'Login'}
             </button>
-            {error && (
-                <div className="alert alert-danger mt-3" role="alert">{error}</div>
-            )}
+            <ErrorAlert error={error} />
         </form>
     )
 }

@@ -38,37 +38,47 @@ const isExpired = (userInfo) => {
 const getRequest = async (url, config, setLoading = null, setError = null) => {
     if (setLoading) { setLoading(true) }
     try {
-        // const response = await axios.get(url, config);
         const response = await axios(url, {
             method: 'GET',
             ...config,
         })
         return response;
     } catch (err) {
-        console.log(err);
         if (setError) { setError(err.response ? err.response.data : 'Error fetching posts') }
         return null;
     } finally {
         if (setLoading) { setLoading(false) }
     }
 }
+const parseError = (error) => {
+    let errors = []
+    if (error?.response?.data?.message?.violations) {
+        error.response.data.message.violations.forEach(violation => {
+            errors.push(violation.message)
+        });
+        return errors;
+    } else if (error?.response?.data?.message){
+        return [error.response.data.message];
+    } else if (error){
+        return [error.message +". Try later" ];
+    } else {
+        return ["Unknown error. Try later"];
+    }
+}
 
 const postRequest = async (url, payload, config, setLoading = null, setError = null) => {
-    // console.log("postRequest");
-    if (setLoading) { setLoading(true) }
+    if (setLoading) { setLoading(true); setError(false)}
     try {
-        // const response = await axios.post(url, payload, config);
-        // console.log(config);
         const response = await axios(url, {
             method: 'POST',
             data: payload,
             ...config,
         })
-        // console.log(response);
         return await response;
-    } catch (err) {
-        // console.log(err);
-        if (setError) { setError(err.response ? err.response.data : 'Error fetching posts') }
+    } catch (error) {
+        if (setError) { 
+            setError(parseError(error));
+        }
         return null;
     } finally {
         if (setLoading) { setLoading(false) }
@@ -118,23 +128,23 @@ const useRequest = () => {
     const { info: userInfo, jwt: accessToken } = user ? user : storedUser ? storedUser : { info: null, jwt: null };
     
     const fetchDataApi = async (type, url, payload, config, setLoading = null, setError = null) => {
-        return await fetchData(type, url, payload, config, setLoading, setError, APP_API_URL);
+        return await fetchData(type, url, payload, config, setLoading, setError, APP_API_URL, true);
     }
     const fetchDataAuth = async (type, url, payload, config, setLoading = null, setError = null) => {
         const newConfig = { ...config, withCredentials: true }
-        return await fetchData(type, url, payload, newConfig, setLoading, setError, AUTH_API_URL);
+        return await fetchData(type, url, payload, newConfig, setLoading, setError, AUTH_API_URL, false);
     }
 
-    const fetchData = async (type, url, payload, config, setLoading = null, setError = null, baseUrl = null) => {
+    const fetchData = async (type, url, payload, config, setLoading = null, setError = null, baseUrl = null, checkAccess = null) => {
         let newConfig;
         // console.log("Token is null: " + (accessToken ? false : true));
         // console.log("Token is expired: " + isExpired(userInfo));
         // console.log("current accessToken\n" + accessToken);
-        if (!userInfo) {
+        if (checkAccess && !userInfo) {
             navigate("/signin");
             return null;
         }
-        if (isExpired(userInfo)) {
+        if (checkAccess && isExpired(userInfo)) {
             let newAccessToken = await updateAccessToken(dispatch);
             // console.log("new accessToken\n" + accessToken);
             if (newAccessToken === null) {
@@ -142,6 +152,8 @@ const useRequest = () => {
                 return null;
             }
             newConfig = setAuthorizationHeader(config, newAccessToken);
+        } else if (!checkAccess) {
+            newConfig = config;
         } else {
             newConfig = setAuthorizationHeader(config, accessToken);
         }

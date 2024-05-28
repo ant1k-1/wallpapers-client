@@ -1,35 +1,34 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { clearError, signupUser } from "../../reducers/UserSlice";
-
+import { signupUser } from "../../reducers/UserSlice";
+import useRequest from "../../services/Requests";
+import ErrorAlert from "../ErrorAlert";
 
 const SignupForm = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading, error } = useSelector((state) => state.user);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
 
-    useEffect(() => {
-        dispatch(clearError());
-    }, [dispatch]);
+    const [fetchDataApi, fetchDataAuth] = useRequest();
 
-    const handleOnSubmit = (e) => {
+    const handleOnSubmit = async (e) => {
         e.preventDefault();
         let userCreds = {
             username, password, email
         }
-        dispatch(signupUser(userCreds)).then((result) => {
-            if (result.payload) {
-                setUsername('');
-                setPassword('');
-                setEmail('');
-                navigate('/');
-                console.log(result.payload);
-            }
-        })
+        const response = await fetchDataAuth('POST', '/api/auth/signup', userCreds, { headers: { "Content-Type": "application/json" } }, setLoading, setError);
+        if (response) {
+            dispatch(signupUser(response.data));
+            setUsername('');
+            setPassword('');
+            setEmail('');
+            navigate('/');
+        }
     }
     return (
         <form className="form-group mx-auto" style={{ width: '20rem' }} onSubmit={handleOnSubmit}>
@@ -49,10 +48,7 @@ const SignupForm = () => {
                 </button>
                 <Link to="/signin" className="mt-2">Already have an account?</Link>
             </div>
-
-            {error && (
-                <div className="alert alert-danger mt-3" role="alert">{error}</div>
-            )}
+            <ErrorAlert error={error} />
         </form>
     )
 }
