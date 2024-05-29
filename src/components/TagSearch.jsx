@@ -5,10 +5,10 @@ import { Button } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import useRequest from '../services/Requests';
 
-const TagSearch = ({ accessToken: accessToken, handleSelectTags:handleSelectTags, handleSearch: handleSearch, handleReset: handleReset }) => {
+const TagSearch = ({ handleSelectedTags:setSearchTags, searchTags: searchTags, handleSearch: handleSearch, handleReset: handleReset }) => {
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [selectedTags, setSelectedTags] = useState([]);
+    // const [selectedTags, setSelectedTags] = useState([]);
     const [fetchDataApi, fetchDataAuth] = useRequest();
     useEffect(() => {
         const trimmedSearchText = searchText.trim();
@@ -23,23 +23,21 @@ const TagSearch = ({ accessToken: accessToken, handleSelectTags:handleSelectTags
             .catch(error => {
                 console.error('Error fetching tags:', error);
             });
-    }, [searchText, accessToken]);
-
-    useEffect(() => {
-        handleSelectTags(selectedTags.map(tag => `${tag.tagType.toLowerCase()}:${tag.tagName}`));
-        
-    }, [selectedTags]);
+    }, [searchText]);
 
     const handleTagClick = (tag) => {
-        if (!selectedTags.includes(tag)) {
-            setSelectedTags(prevTags => [...prevTags, tag]);
+        if (!searchTags.includes(tag)) {
+            setSearchTags([...searchTags, tag]);
         }
         setSearchText('');
         setSearchResults([]);
     };
 
     const removeTag = (toRemoveTag) => {
-        setSelectedTags(prevTags => prevTags.filter(tag => tag.tagName !== toRemoveTag.tagName));
+        setSearchTags(searchTags.filter(tag => tag.tagName !== toRemoveTag.tagName));
+        // if (searchTags?.length === 1) {
+        //     handleReset(); // разумно ли обнулять поиск при удалении всех тегов автоматически? или же дать юзеру возможность сбросить через RESET
+        // }
     };
 
     //{tagId: 12, tagType: 'TITLE', tagName: 'someanime', usageCount: 0}
@@ -63,7 +61,7 @@ const TagSearch = ({ accessToken: accessToken, handleSelectTags:handleSelectTags
                     className="me-2 flex-grow-1"
                     aria-label="Search"
                 />
-                <Button variant="primary" onClick={handleSearch}>Search</Button>
+                <Button variant="primary" disabled={searchTags?.length > 0 ? ("") : "disabled"} onClick={handleSearch}>Search</Button>
                 <Button variant="outline-primary ms-2" onClick={handleReset}>Reset</Button>
             </Form>
             <div className="list-group" style={{position: "absolute", width: "73%"}}>
@@ -85,7 +83,7 @@ const TagSearch = ({ accessToken: accessToken, handleSelectTags:handleSelectTags
                 ))}
             </div>
             <div className="mt-3">
-                {selectedTags.map((tag, index) => (
+                {searchTags.map((tag, index) => (
                     <span style={{backgroundColor: chooseColor(tag.tagType).toString()}} key={index} className="badge me-2 mb-1">
                         {tag.tagName}
                         <button type="button" className="btn-close btn-close-white ms-2" aria-label="Close" onClick={() => removeTag(tag)}></button>

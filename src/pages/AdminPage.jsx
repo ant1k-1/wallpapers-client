@@ -89,6 +89,7 @@ const AdminPage = () => {
         }
     };
 
+    // TODO: сделать тут loading для кнопки, иначе непонятно, изменяется статус или нет
     const handleStatusChange = async (userId, status) => {
         try {
             await fetchDataApi('POST', `/api/users/id/${userId}/status`, { status }, config);
@@ -100,6 +101,7 @@ const AdminPage = () => {
         }
     };
 
+    // TODO: аналогично сделать loading для кнопки
     const handleSetPreviewQuality = async () => {
         try {
             await fetchDataApi('POST', `/api/posts/admin/preview_quality/${previewQuality}`, {}, config);

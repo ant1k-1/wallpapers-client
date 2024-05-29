@@ -6,6 +6,12 @@ import { useSelector } from 'react-redux';
 import ImageWithAuth from '../components/ImageWithAuth';
 import useRequest from '../services/Requests';
 
+// TODO: убрать кнопку Accept с опубликванного поста
+// TODO: добавить просмотрщик превью, можно взять с курсача по РСЧИР либо погуглить
+// TODO: поработать на интерфейсом
+// TODO: для бэка сделать увеличение счетчика просмотров
+// TODO: добавить редактирование тегов
+
 const PostPage = (props) => {
     const navigate = useNavigate();
     const { post_id } = useParams();

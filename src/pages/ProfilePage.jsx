@@ -7,6 +7,9 @@ import Gallary from "../components/Gallary";
 import Loading from "../components/Loading";
 import useRequest from "../services/Requests";
 
+// TODO: Добавить изменение пароля
+// TODO: Добавить подтверждение почты
+// TODO: Поменять интерфейс
 
 const ProfilePage = () => {
     const { userId } = useParams();

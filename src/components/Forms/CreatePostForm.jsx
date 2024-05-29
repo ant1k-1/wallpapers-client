@@ -4,6 +4,8 @@ import { Container } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import useRequest from '../../services/Requests';
 
+// TODO: добавить предложения тегов, при добавлении тега, как в поисковой строке на главной
+
 const CreatePostForm = () => {
     const [image, setImage] = useState(null);
     const [source, setSource] = useState(null);

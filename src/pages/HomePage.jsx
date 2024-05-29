@@ -7,9 +7,6 @@ import TagSearch from '../components/TagSearch';
 import Loading from '../components/Loading';
 import useRequest from '../services/Requests';
 
-// const WALLPAPERS_API_URL = 'https://wallpapers-api-pub3.onrender.com'
-// const WALLPAPERS_API_URL = import.meta.env.VITE_APP_API_URL;
-const WALLPAPERS_API_URL = 'http://localhost:8080'
 
 const HomePage = () => {
     const { user } = useSelector((state) => state.user);
@@ -25,16 +22,19 @@ const HomePage = () => {
     const [sortOrder, setSortOrder] = useState('UPLOAD_DATE_DESC');
     const [search, setSearch] = useState(false);
     const [searchTags, setSearchTags] = useState([]);
+    const [searchByTags, setSearchByTags] = useState(false);
 
 
     const handleSearch = () => {
         // console.log("handleSearch");
         setSearch(true);
+        setSearchByTags(true);
     };
     const handleReset = () => {
         // console.log("handleReset");
         setSearchTags([]);
-        setSearch(false);
+        setSearchByTags(false);
+        setSearch(!search);
     }
 
     const config = {
@@ -50,10 +50,12 @@ const HomePage = () => {
     }
 
     const fecthPostsByTags = async () => {
-        const response = await fetchDataApi('POST', '/api/posts/all/tags', { tagNames: searchTags }, config, setLoading, setError);
+        const formattedTags = searchTags.map(tag => `${tag.tagType.toLowerCase()}:${tag.tagName}`);
+        const response = await fetchDataApi('POST', '/api/posts/all/tags', { tagNames: formattedTags }, config, setLoading, setError);
         if (response) {
             setPosts(response.data.content);
             setTotalPages(response.data.totalPages);
+            setSearch(false);
         }
     };
 
@@ -62,13 +64,14 @@ const HomePage = () => {
         if (response) {
             setPosts(response.data.content);
             setTotalPages(response.data.totalPages);
+            setSearch(false);
         }
     };
     useEffect(() => {
         if (!accessToken) {
             return;
         }
-        if (!search) {
+        if (!searchByTags) {
             fetchPosts();
         } else {
             fecthPostsByTags();
@@ -126,7 +129,7 @@ const HomePage = () => {
                     </Button>
                 </div>
             </div>
-            <TagSearch handleSearch={handleSearch} handleReset={handleReset} handleSelectTags={setSearchTags} accessToken={accessToken} />
+            <TagSearch handleSearch={handleSearch} handleReset={handleReset} handleSelectedTags={setSearchTags} searchTags={searchTags} />
             <Gallary posts={posts} currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} />
         </Container>
     );

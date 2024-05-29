@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux"
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { updateToken } from "../reducers/UserSlice";
+import { logoutUser, updateToken } from "../reducers/UserSlice";
 import { useState } from "react";
 import { setCookie, getCookie, eraseCookie } from "./Cookies";
 
@@ -148,8 +148,15 @@ const useRequest = () => {
             let newAccessToken = await updateAccessToken(dispatch);
             // console.log("new accessToken\n" + accessToken);
             if (newAccessToken === null) {
-                navigate("/signin")
-                return null;
+                console.log('something goes wrong, try again to update token');
+                newAccessToken = await updateAccessToken(dispatch);
+                if (newAccessToken === null) {
+                    console.log('failed to update token, then logout and login')
+                    dispatch(logoutUser());
+                    navigate("/signin")
+                    return null;
+                }
+                console.log('Successfully');
             }
             newConfig = setAuthorizationHeader(config, newAccessToken);
         } else if (!checkAccess) {
